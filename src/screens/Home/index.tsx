@@ -4,12 +4,19 @@ import { FlatList, Heading, HStack, Text, VStack } from "native-base";
 import { ExerciseCard } from "@components/ExerciseCard";
 import { Group } from "@components/Group";
 import { HomeHeader } from "@components/HomeHeader";
+import { useNavigation } from "@react-navigation/native";
+import { AppRoutesProps } from "@routes/app.routes";
 
 export const Home = () => {
+  const navigation = useNavigation<AppRoutesProps>();
   const [groups, setGroups] = useState(["costas", "ombro", "pernas", "peito"]);
   const [groupSelected, setGroupSelected] = useState("costas");
 
   const [exercises, setExercises] = useState([1, 2, 3, 4, 5, 6, 7]);
+
+  const handleExercise = () => {
+    navigation.navigate("exercise");
+  };
 
   const renderItemGroup = ({ item }: { item: string }) => {
     return (
@@ -22,7 +29,7 @@ export const Home = () => {
   };
 
   const renderItemExercise = ({ item }: { item: number }) => {
-    return <ExerciseCard />;
+    return <ExerciseCard onPress={handleExercise} />;
   };
 
   return (
@@ -31,6 +38,7 @@ export const Home = () => {
       <FlatList
         my={10}
         maxH={10}
+        minH={10}
         horizontal
         showsHorizontalScrollIndicator={false}
         data={groups}
@@ -40,7 +48,7 @@ export const Home = () => {
       />
       <VStack flex={1} px={8}>
         <HStack mb={5} justifyContent={"space-between"}>
-          <Heading color={"gray.200"} fontSize={"md"}>
+          <Heading fontFamily={"heading"} color={"gray.200"} fontSize={"md"}>
             Exercícios
           </Heading>
           <Text color={"gray.200"} fontSize={"sm"}>

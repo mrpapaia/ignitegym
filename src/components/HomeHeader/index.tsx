@@ -4,7 +4,6 @@ import { UserPhoto } from "@components/UserPhoto";
 import { TouchableOpacity } from "react-native-gesture-handler";
 
 import UserPhotoDefaultPng from "assets/userPhotoDefault.png";
-import { useState } from "react";
 
 export const HomeHeader = () => {
   return (
@@ -27,7 +26,7 @@ export const HomeHeader = () => {
         <Text color={"gray.100"} fontSize={"md"}>
           Olá,
         </Text>
-        <Heading color={"gray.100"} fontSize={"md"}>
+        <Heading fontFamily={"heading"} color={"gray.100"} fontSize={"md"}>
           Diogo
         </Heading>
       </VStack>

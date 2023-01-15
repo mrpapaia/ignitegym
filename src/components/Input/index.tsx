@@ -1,19 +1,28 @@
-import { Input as NBInput, IInputProps } from "native-base";
+import { Input as NBInput, IInputProps, FormControl } from "native-base";
 
-export const Input = ({ ...rest }: IInputProps): JSX.Element => {
+type Props = IInputProps & {
+  errorMessage?: string;
+};
+
+export const Input = ({ errorMessage, ...rest }: Props): JSX.Element => {
+  const isInvalid = !!errorMessage;
   return (
-    <NBInput
-      h={14}
-      px={4}
-      mb={4}
-      bg={"gray.700"}
-      borderWidth={0}
-      fontSize={"md"}
-      fontFamily={"body"}
-      color={"white"}
-      placeholderTextColor={"gray.300"}
-      _focus={{ bg: "gray.700", borderWidth: 1, borderColor: "green.500" }}
-      {...rest}
-    />
+    <FormControl isInvalid={isInvalid} mb={4}>
+      <NBInput
+        h={14}
+        px={4}
+        bg={"gray.700"}
+        borderWidth={0}
+        fontSize={"md"}
+        fontFamily={"body"}
+        color={"white"}
+        placeholderTextColor={"gray.300"}
+        isInvalid={isInvalid}
+        _invalid={{ borderWidth: 1, borderColor: "red.500" }}
+        _focus={{ bg: "gray.700", borderWidth: 1, borderColor: "green.500" }}
+        {...rest}
+      />
+      <FormControl.ErrorMessage>{errorMessage}</FormControl.ErrorMessage>
+    </FormControl>
   );
 };

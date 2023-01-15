@@ -21,11 +21,11 @@ export const ExerciseCard = ({ ...rest }: Props) => {
           source={{
             uri: "https://blog.keydesign.com.br/wp-content/uploads/2017/03/IMAGE_1_642x361_5_Best_Ab_Moves_for_Men.jpg",
           }}
-          resizeMode={"center"}
+          resizeMode={"cover"}
           alt={"Imagem do exercício"}
         />
         <VStack flex={1}>
-          <Heading fontSize={"lg"} color={"white"}>
+          <Heading fontFamily={"heading"} fontSize={"lg"} color={"white"}>
             Exercicio aleatorio
           </Heading>
           <Text fontSize={"sm"} color={"gray.200"} mt={1} numberOfLines={2}>
