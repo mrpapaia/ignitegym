@@ -4,8 +4,16 @@ import { UserPhoto } from "@components/UserPhoto";
 import { TouchableOpacity } from "react-native-gesture-handler";
 
 import UserPhotoDefaultPng from "assets/userPhotoDefault.png";
+import { useAuth } from "@hooks/useAuth";
+
+import DefaultUserPhoto from "@assets/userPhotoDefault.png";
 
 export const HomeHeader = () => {
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
   return (
     <HStack
       bg={"gray.600"}
@@ -17,7 +25,7 @@ export const HomeHeader = () => {
     >
       <UserPhoto
         size={16}
-        source={{ uri: "https://github.com/mrpapaia.png" }}
+        source={user.avatar ? { uri: user.avatar } : DefaultUserPhoto}
         defaultSource={UserPhotoDefaultPng}
         alt={"Foto do usuário"}
         mr={4}
@@ -27,10 +35,10 @@ export const HomeHeader = () => {
           Olá,
         </Text>
         <Heading fontFamily={"heading"} color={"gray.100"} fontSize={"md"}>
-          Diogo
+          {user.name}
         </Heading>
       </VStack>
-      <TouchableOpacity>
+      <TouchableOpacity onPress={handleSignOut}>
         <Icon as={MaterialIcons} name={"logout"} color={"gray.200"} size={7} />
       </TouchableOpacity>
     </HStack>

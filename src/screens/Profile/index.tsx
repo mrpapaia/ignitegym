@@ -23,6 +23,7 @@ import { ScreenHeader } from "@components/ScreenHeader";
 import UserPhotoDefaultPng from "assets/userPhotoDefault.png";
 import { Input } from "@components/Input";
 import { Button } from "@components/Button";
+import { useAuth } from "@hooks/useAuth";
 
 const PHOTO_SIZE = 33;
 
@@ -48,12 +49,13 @@ type FormeDataProps = {
 };
 
 export const Profile = () => {
+  const { user } = useAuth();
   const {
     control,
     handleSubmit,
     formState: { errors },
   } = useForm<FormeDataProps>({
-    defaultValues: { name: "Diogo", email: "dj@gmail.com" },
+    defaultValues: { name: user.name, email: user.email },
     resolver: yupResolver(profileSchema),
   });
 

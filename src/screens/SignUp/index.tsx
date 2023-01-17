@@ -1,13 +1,27 @@
-import { ScrollView, VStack, Image, Text, Center, Heading } from "native-base";
+import { useState } from "react";
+import {
+  ScrollView,
+  VStack,
+  Image,
+  Text,
+  Center,
+  Heading,
+  useToast,
+} from "native-base";
 import { useNavigation } from "@react-navigation/native";
 import { useForm, Controller } from "react-hook-form";
 
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
+
+import { useAuth } from "@hooks/useAuth";
 import BackGroundImg from "@assets/background.png";
 import LogoSvg from "@assets/logo.svg";
 import { Input } from "@components/Input";
 import { Button } from "@components/Button";
+import { api } from "@service/api";
+
+import { AppError } from "@utils/AppError";
 
 type FormDataProps = {
   name: string;
@@ -35,20 +49,35 @@ export const SignUp = (): JSX.Element => {
     handleSubmit,
     formState: { errors },
   } = useForm<FormDataProps>({ resolver: yupResolver(signUpSchema) });
-  const navigation = useNavigation();
 
-  const handleSignUp = ({
-    name,
-    email,
-    password,
-    password_confirm,
-  }: FormDataProps) => {
-    console.log({
-      name,
-      email,
-      password,
-      password_confirm,
-    });
+  const navigation = useNavigation();
+  const toast = useToast();
+  const { signIn } = useAuth();
+  const [loading, setLoading] = useState(false);
+
+  const handleSignUp = ({ name, email, password }: FormDataProps) => {
+    setLoading(true);
+    api
+      .post("/users", { name: name, email: email, password: password })
+      .then(async (response) => {
+        await signIn(email, password);
+      })
+      .catch((error) => {
+        if (error instanceof AppError) {
+          return toast.show({
+            title: error.message,
+            placement: "top",
+            bgColor: "red.500",
+          });
+        }
+
+        toast.show({
+          title: "Não foi possivel criar a conta. Tente Novamente mais tarde",
+          placement: "top",
+          bgColor: "red.500",
+        });
+      })
+      .finally(() => setLoading(false));
   };
 
   const handleGoBack = () => {
@@ -145,6 +174,7 @@ export const SignUp = (): JSX.Element => {
           <Button
             title={"Criar e acessar"}
             onPress={handleSubmit(handleSignUp)}
+            isLoading={loading}
           />
           <Button
             mt={16}

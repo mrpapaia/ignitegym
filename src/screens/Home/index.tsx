@@ -6,6 +6,7 @@ import { Group } from "@components/Group";
 import { HomeHeader } from "@components/HomeHeader";
 import { useNavigation } from "@react-navigation/native";
 import { AppRoutesProps } from "@routes/app.routes";
+import { useAuth } from "@hooks/useAuth";
 
 export const Home = () => {
   const navigation = useNavigation<AppRoutesProps>();
