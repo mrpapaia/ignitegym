@@ -24,32 +24,50 @@ import UserPhotoDefaultPng from "assets/userPhotoDefault.png";
 import { Input } from "@components/Input";
 import { Button } from "@components/Button";
 import { useAuth } from "@hooks/useAuth";
+import { api } from "@service/api";
+import { AppError } from "@utils/AppError";
+import DefaultUserPhoto from "@assets/userPhotoDefault.png";
 
 const PHOTO_SIZE = 33;
 
 const profileSchema = yup.object({
   name: yup.string().required("Informe o nome"),
   email: yup.string().required("Informe o e-mail.").email(),
+  old_password: yup
+    .string()
+    .nullable()
+    .transform((value) => (!!value ? value : null)),
   password: yup
     .string()
-    .required("Informe a senha")
-    .min(6, "A senha deve contaer pelo menos 6 caracteres"),
+
+    .min(6, "A senha deve conter pelo menos 6 caracteres")
+    .nullable()
+    .transform((value) => (!!value ? value : null)),
 
   password_confirm: yup
     .string()
-    .required("Confirme a senha")
-    .oneOf([yup.ref("password"), null], "A confirmação da senha não confere"),
+    .nullable()
+    .transform((value) => (!!value ? value : null))
+    .oneOf([yup.ref("password"), null], "A confirmação da senha não confere")
+    .when("password", {
+      is: (field: any) => field,
+      then: yup
+        .string()
+        .required("A confirmação da senha não confere")
+        .nullable(),
+    }),
 });
 
 type FormeDataProps = {
   name: string;
   email: string;
+  old_password: string;
   password: string;
   password_confirm: string;
 };
 
 export const Profile = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const {
     control,
     handleSubmit,
@@ -60,7 +78,8 @@ export const Profile = () => {
   });
 
   const [photoIsLoagind, setPhotoIsLoading] = useState(false);
-  const [userPhoto, setUserPhoto] = useState("https://github.com/mrpapaia.png");
+
+  const [loading, setLoading] = useState(false);
 
   const toast = useToast();
   const handlePhotoSelect = async () => {
@@ -87,16 +106,64 @@ export const Profile = () => {
             bgColor: "red.500",
           });
         }
-        setUserPhoto(selectedPhoto.assets[0].uri);
+        const fileExtension = selectedPhoto.assets[0].uri.split(".").pop();
+        const photoFile = {
+          name: `${user.name}.${fileExtension}`.toLowerCase(),
+          uri: selectedPhoto.assets[0].uri,
+          type: `${selectedPhoto.assets[0].type}/${fileExtension}`,
+        } as any;
+        //
+
+        const userPhotoUploadFrom = new FormData();
+        userPhotoUploadFrom.append("avatar", photoFile);
+        const avatarResponse = await api.patch(
+          "/users/avatar",
+          userPhotoUploadFrom,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
+        toast.show({
+          title: "Foto atualizada",
+          placement: "top",
+          bgColor: "green.500",
+        });
+        const updatedUser = user;
+        updatedUser.avatar = avatarResponse.data.avatar;
+        updateUser(updatedUser);
       }
-    } catch (erro) {
-      console.log();
+    } catch (error) {
+      toast.show({
+        title: error.message,
+        placement: "top",
+        bgColor: "red.500",
+      });
     } finally {
       setPhotoIsLoading(false);
     }
   };
 
-  const handleUpdate = (data: any) => {};
+  const handleUpdate = async (data: FormeDataProps) => {
+    try {
+      setLoading(true);
+      await api.put("/users", data);
+      toast.show({
+        title: "Perfil atualizado com sucesso!",
+        placement: "top",
+        bgColor: "green.500",
+      });
+      await updateUser({ ...user, name: data.name });
+    } catch (error) {
+      const isAppError = error instanceof AppError;
+      const title = isAppError
+        ? error.message
+        : "Não foi possivel carregar os detalhes do exeircicio";
+      toast.show({ title, placement: "top", bgColor: "red.500" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <VStack flex={1}>
       <ScreenHeader title="Perfil" />
@@ -113,7 +180,11 @@ export const Profile = () => {
           ) : (
             <UserPhoto
               size={PHOTO_SIZE}
-              source={{ uri: userPhoto }}
+              source={
+                user.avatar
+                  ? { uri: `${api.defaults.baseURL}/avatar/${user.avatar}` }
+                  : DefaultUserPhoto
+              }
               defaultSource={UserPhotoDefaultPng}
               alt={"Foto do usuário"}
             />
@@ -165,12 +236,26 @@ export const Profile = () => {
             Alterar senha
           </Heading>
           <Controller
-            name={"password"}
+            name={"old_password"}
             control={control}
             render={({ field: { onChange, value } }) => (
               <Input
                 secureTextEntry
                 placeholder="Senha atual"
+                onChangeText={onChange}
+                value={value}
+                bg={"gray.600"}
+                errorMessage={errors.old_password?.message}
+              />
+            )}
+          />
+          <Controller
+            name={"password"}
+            control={control}
+            render={({ field: { onChange, value } }) => (
+              <Input
+                secureTextEntry
+                placeholder="Nova Senha"
                 onChangeText={onChange}
                 value={value}
                 bg={"gray.600"}
@@ -195,7 +280,11 @@ export const Profile = () => {
             )}
           />
 
-          <Button title={"Atualizar"} onPress={handleSubmit(handleUpdate)} />
+          <Button
+            isLoading={loading}
+            title={"Atualizar"}
+            onPress={handleSubmit(handleUpdate)}
+          />
         </VStack>
       </ScrollView>
     </VStack>
